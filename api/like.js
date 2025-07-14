@@ -30,6 +30,7 @@ export default async function handler(req, res) {
     });
 
     const listData = await listRes.json();
+    console.log('List Items Response:', listData); // ✅ NEW LINE!
     const matchingItem = listData.items.find(item => item.slug === slug);
 
     if (!matchingItem) {
