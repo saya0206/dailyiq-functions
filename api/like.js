@@ -1,28 +1,27 @@
 export default async function handler(req, res) {
-  // ✅ Always set these headers first
+  // ✅ CORS headers for Webflow
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // ✅ Handle the preflight OPTIONS request
+  // ✅ Handle preflight
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // ✅ Allow only POST after OPTIONS
+  // ✅ Allow only POST
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // ✅ Real Like logic
   const { slug } = req.body;
 
   const WEBFLOW_API_TOKEN = process.env.WEBFLOW_API_TOKEN;
-  const COLLECTION_ID = '68345a9a1e62007f2897e146';
+  const COLLECTION_ID = '68345a9a1e62007f2897e146'; // ✅ Use your real ID
 
   try {
-    // 1) Get all items to find by slug
-    const listRes = await fetch(`https://api.webflow.com/collections/${COLLECTION_ID}/items?live=true`, {
+    // ✅ GET items — no ?live=true so it works on staging
+    const listRes = await fetch(`https://api.webflow.com/collections/${COLLECTION_ID}/items`, {
       headers: {
         Authorization: `Bearer ${WEBFLOW_API_TOKEN}`,
         'accept-version': '1.0.0'
@@ -30,7 +29,8 @@ export default async function handler(req, res) {
     });
 
     const listData = await listRes.json();
-    console.log('List Items Response:', listData); // ✅ NEW LINE!
+    console.log('List Items Response:', listData);
+
     const matchingItem = listData.items.find(item => item.slug === slug);
 
     if (!matchingItem) {
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
 
     const currentLikes = matchingItem['like-count'] || 0;
 
-    // 2) Update like count
+    // ✅ PUT item — keep ?live=true so it publishes when you go live
     const updatedFields = {
       fields: {
         _archived: false,
@@ -63,8 +63,10 @@ export default async function handler(req, res) {
     if (updateRes.ok) {
       return res.status(200).json({ message: '✅ Like updated!' });
     } else {
+      console.error(await updateRes.text());
       return res.status(500).json({ error: 'Failed to update CMS item.' });
     }
+
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Internal server error.' });
