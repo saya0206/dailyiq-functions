@@ -29,6 +29,8 @@ export default async function handler(req, res) {
     });
 
     const listData = await listRes.json();
+    console.log('List Items Status:', listRes.status);
+    console.log('List Items JSON:', JSON.stringify(listData, null, 2));
     console.log('List Items Response:', listData);
 
     const matchingItem = listData.items.find(item => item.slug === slug);
