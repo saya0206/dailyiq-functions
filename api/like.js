@@ -1,25 +1,27 @@
 export default async function handler(req, res) {
-  // ✅ CORS headers — allow your Webflow site to call this function
-  res.setHeader('Access-Control-Allow-Origin', '*'); // Or 'https://dailyiq-7f8d7e.webflow.io'
+  // ✅ Always set these headers first
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // ✅ Handle preflight requests
+  // ✅ Handle the preflight OPTIONS request
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
+  // ✅ Allow only POST after OPTIONS
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  // ✅ Real Like logic
   const { slug } = req.body;
 
   const WEBFLOW_API_TOKEN = process.env.WEBFLOW_API_TOKEN;
-  const COLLECTION_ID = '68345a9a1e62007f2897e146'; // ✅ YOUR PUZZLES COLLECTION ID
+  const COLLECTION_ID = '68345a9a1e62007f2897e146';
 
   try {
-    // 1️⃣ Get all items in the collection to find the item by slug
+    // 1) Get all items to find by slug
     const listRes = await fetch(`https://api.webflow.com/collections/${COLLECTION_ID}/items?live=true`, {
       headers: {
         Authorization: `Bearer ${WEBFLOW_API_TOKEN}`,
@@ -36,7 +38,7 @@ export default async function handler(req, res) {
 
     const currentLikes = matchingItem['like-count'] || 0;
 
-    // 2️⃣ Update the item with +1 like
+    // 2) Update like count
     const updatedFields = {
       fields: {
         _archived: false,
